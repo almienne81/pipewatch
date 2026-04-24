@@ -65,7 +65,14 @@ def main(
         pipewatch python train.py --epochs 50
         pipewatch --notify-on-success bash etl.sh
     """
-    cfg = load_config(config_path)
+    try:
+        cfg = load_config(config_path)
+    except FileNotFoundError as exc:
+        raise click.BadParameter(
+            str(exc), param_hint="'--config'"
+        ) from exc
+    except Exception as exc:  # noqa: BLE001
+        raise click.ClickException(f"Failed to load config: {exc}") from exc
 
     # Allow CLI --label to override whatever is in the config file.
     if label is not None:
