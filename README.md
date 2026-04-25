@@ -58,6 +58,20 @@ pipewatch --config .pipewatch.yml --name "weekly-report" -- python weekly.py
 | `--slack` | Slack channel to notify |
 | `--email` | Email address to notify |
 | `--config` | Path to YAML config file |
+| `--retries` | Number of times to retry on failure (default: 0) |
+| `--on-success` | Alert only on success (skip failure alerts) |
+| `--on-failure` | Alert only on failure (skip success alerts) |
+
+---
+
+## Exit Codes
+
+`pipewatch` forwards the exit code of the wrapped command. Additionally:
+
+- `0` — Job completed successfully
+- `1` — Job failed (non-zero exit from wrapped command)
+- `2` — Job timed out
+- `3` — Configuration error (missing or invalid `.pipewatch.yml`)
 
 ---
 
