@@ -41,6 +41,9 @@ def cmd_cooldown_check(args: argparse.Namespace) -> None:
 def cmd_cooldown_reset(args: argparse.Namespace) -> None:
     """Clear cooldown state for a specific key."""
     cd = Cooldown(path=_resolve_path(args), default_seconds=args.default_seconds)
+    if not cd.has_entry(args.key):
+        print(f"No cooldown entry found for key: {args.key}")
+        return
     cd.reset(args.key)
     print(f"Cooldown reset for key: {args.key}")
 
