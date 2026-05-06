@@ -11,6 +11,29 @@ from pipewatch.config import load_config
 from pipewatch.monitor import run_and_monitor
 
 
+def _load_config_or_exit(config_path: str | None):
+    """Load configuration from *config_path*, converting errors to Click exceptions.
+
+    Args:
+        config_path: Path to the YAML config file, or ``None`` to use the default.
+
+    Returns:
+        A loaded :class:`~pipewatch.config.Config` instance.
+
+    Raises:
+        click.BadParameter: If the specified config file is not found.
+        click.ClickException: If the config file cannot be parsed.
+    """
+    try:
+        return load_config(config_path)
+    except FileNotFoundError as exc:
+        raise click.BadParameter(
+            str(exc), param_hint="'--config'"
+        ) from exc
+    except Exception as exc:  # noqa: BLE001
+        raise click.ClickException(f"Failed to load config: {exc}") from exc
+
+
 @click.command(context_settings={"help_option_names": ["-h", "--help"]})
 @click.argument("command", nargs=-1, required=True)
 @click.option(
@@ -65,14 +88,7 @@ def main(
         pipewatch python train.py --epochs 50
         pipewatch --notify-on-success bash etl.sh
     """
-    try:
-        cfg = load_config(config_path)
-    except FileNotFoundError as exc:
-        raise click.BadParameter(
-            str(exc), param_hint="'--config'"
-        ) from exc
-    except Exception as exc:  # noqa: BLE001
-        raise click.ClickException(f"Failed to load config: {exc}") from exc
+    cfg = _load_config_or_exit(config_path)
 
     # Allow CLI --label to override whatever is in the config file.
     if label is not None:
