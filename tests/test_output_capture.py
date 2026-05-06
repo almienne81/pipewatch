@@ -15,6 +15,7 @@ def _now() -> datetime:
 
 
 def _make_output(**kwargs) -> CapturedOutput:
+    """Create a CapturedOutput instance with sensible defaults for testing."""
     defaults = dict(
         command="echo hi",
         stdout="hi\n",
@@ -64,6 +65,12 @@ def test_to_dict_contains_expected_keys():
         assert key in d
 
 
+def test_to_dict_returncode_value():
+    """Ensure to_dict preserves the returncode value accurately."""
+    out = _make_output(returncode=42)
+    assert out.to_dict()["returncode"] == 42
+
+
 def test_capture_successful_command():
     result = capture([sys.executable, "-c", "print('hello')"])
     assert result.succeeded()
@@ -98,3 +105,14 @@ def test_capture_truncates_large_output():
     )
     assert len(result.stdout) <= max_b
     assert result.truncated is True
+
+
+def test_capture_records_started_and_finished_at():
+    """Ensure capture sets started_at and finished_at with timezone-aware datetimes."""
+    before = _now()
+    result = capture([sys.executable, "-c", "pass"])
+    after = _now()
+
+    assert result.started_at.tzinfo is not None
+    assert result.finished_at.tzinfo is not None
+    assert before <= result.started_at <= result.finished_at <= after
